@@ -27,7 +27,6 @@ npm-debug.log
 .commit
 entry-*.js
 node_modules/
-dist/
 docs/
 typings/
 !src/typings/
