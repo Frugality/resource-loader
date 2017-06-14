@@ -2,7 +2,7 @@ import parseUri from 'parse-uri';
 import Signal from 'mini-signals';
 
 // tests is CORS is supported in XHR, if not we need to use XDR
-const useXdr = !!(window.XDomainRequest && !('withCredentials' in (new XMLHttpRequest())));
+const useXdr = (typeof window !== 'undefined') && !!(window.XDomainRequest && !('withCredentials' in (new XMLHttpRequest())));
 let tempAnchor = null;
 
 // some status constants
@@ -808,7 +808,7 @@ export default class Resource {
         }
 
         // default is window.location
-        loc = loc || window.location;
+        loc = loc ||  (typeof window !== 'undefined' && window.location);
 
         if (!tempAnchor) {
             tempAnchor = document.createElement('a');
