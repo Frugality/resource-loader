@@ -7,6 +7,13 @@ describe('Loader', () => {
         loader = new Loader(fixtureData.baseUrl);
     });
 
+    it('should have exported correctly', () => {
+        expect(Loader).to.have.property('default', Loader);
+        expect(Loader).to.have.property('Resource');
+        expect(Loader).to.have.property('async');
+        expect(Loader).to.have.property('base64');
+    });
+
     it('should have correct properties', () => {
         expect(loader).to.have.property('baseUrl', fixtureData.baseUrl);
         expect(loader).to.have.property('progress', 0);
@@ -338,6 +345,23 @@ describe('Loader', () => {
             });
         });
 
+        it('should run `after` middleware for resources that have been completed in `before` middleware', (done) => {
+            const spy = sinon.spy((res, next) => next());
+
+            loader
+                .pre((res, next) => {
+                    res.complete();
+                    next();
+                })
+                .use(spy)
+                .add(fixtureData.dataUrlGif)
+                .add(fixtureData.url)
+                .load(() => {
+                    expect(spy).to.have.been.calledTwice;
+                    done();
+                });
+        });
+
         it('should properly load the resource', (done) => {
             const spy = sinon.spy((loader, resources) => {
                 expect(spy).to.have.been.calledOnce;
@@ -441,7 +465,7 @@ describe('Loader', () => {
     });
 
     describe('#_loadResource', () => {
-        it('should run the before middleware before loading the resource', () => {
+        it('should run the before middleware before loading the resource', (done) => {
             const spy = sinon.spy();
             const res = {};
 
@@ -449,9 +473,13 @@ describe('Loader', () => {
 
             loader._loadResource(res);
 
-            expect(spy).to.have.been.calledOnce
-                .and.calledOn(loader)
-                .and.calledWith(res);
+            setTimeout(() => {
+                expect(spy).to.have.been.calledOnce
+                    .and.calledOn(loader)
+                    .and.calledWith(res);
+
+                done();
+            }, 16);
         });
 
         it('should load a resource passed into it', () => {
@@ -520,7 +548,7 @@ describe('Loader', () => {
             expect(spy).to.have.been.calledOnce;
         });
 
-        it('should run the after middleware', () => {
+        it('should run the after middleware', (done) => {
             const spy = sinon.spy();
             const res = {};
 
@@ -530,9 +558,13 @@ describe('Loader', () => {
 
             loader._onLoad(res);
 
-            expect(spy).to.have.been.calledOnce
-                .and.calledOn(loader)
-                .and.calledWith(res);
+            setTimeout(() => {
+                expect(spy).to.have.been.calledOnce
+                    .and.calledOn(loader)
+                    .and.calledWith(res);
+
+                done();
+            }, 16);
         });
     });
 
@@ -578,11 +610,15 @@ describe('Loader', () => {
                     { name: 'hud2', url: 'hud2.png' },
                 ]);
 
+                const expectedProgressValues = [50, 100];
+                let i = 0;
+
                 loader.onProgress.add((loader) => {
-                    expect(loader.progress).to.at.least(0).and.at.most(100);
+                    expect(loader).to.have.property('progress', expectedProgressValues[i++]);
                 });
 
                 loader.load(() => {
+                    expect(loader).to.have.property('progress', 100);
                     done();
                 });
             });
@@ -647,11 +683,15 @@ describe('Loader', () => {
 
                 loader.use(spritesheetMiddleware());
 
+                const expectedProgressValues = [50, 75, 100];
+                let i = 0;
+
                 loader.onProgress.add((loader) => {
-                    expect(loader.progress).to.at.least(0).and.at.most(100);
+                    expect(loader).to.have.property('progress', expectedProgressValues[i++]);
                 });
 
                 loader.load(() => {
+                    expect(loader).to.have.property('progress', 100);
                     done();
                 });
             });
@@ -698,11 +738,15 @@ describe('Loader', () => {
 
                 loader.use(spritesheetMiddleware());
 
+                const expectedProgressValues = [25, 50, 75, 100];
+                let i = 0;
+
                 loader.onProgress.add((loader) => {
-                    expect(loader.progress).to.at.least(0).and.at.most(100);
+                    expect(loader).to.have.property('progress', expectedProgressValues[i++]);
                 });
 
                 loader.load(() => {
+                    expect(loader).to.have.property('progress', 100);
                     done();
                 });
             });
