@@ -10,9 +10,20 @@ const Resource = require('./Resource').default;
 const async = require('./async');
 const b64 = require('./b64');
 
+const {memoryMiddlewareFactory} = require('./middlewares/caching/memory');
+const {blobMiddlewareFactory} = require('./middlewares/parsing/blob');
+
 Loader.Resource = Resource;
 Loader.async = async;
 Loader.base64 = b64;
+Loader.middleware = {
+  caching: {
+    memory: memoryMiddlewareFactory
+  },
+  parsing: {
+    blob: blobMiddlewareFactory
+  }
+};
 
 // export manually, and also as default
 module.exports = Loader;
