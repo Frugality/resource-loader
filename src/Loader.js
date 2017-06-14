@@ -47,8 +47,6 @@ export default class Loader {
          * [`encodeURIComponent`](https://mdn.io/encodeURIComponent) before assigning this property.
          *
          * @example
-         *
-         * ```js
          * const loader = new Loader();
          *
          * loader.defaultQueryString = 'user=me&password=secret';
@@ -60,7 +58,6 @@ export default class Loader {
          *
          * // This will request 'image.png?v=1&user=me&password=secret'
          * loader.add('iamge.png?v=1').load();
-         * ```
          */
         this.defaultQueryString = '';
 
@@ -337,6 +334,8 @@ export default class Loader {
             for (let i = 0; i < incompleteChildren.length; ++i) {
                 incompleteChildren[i].progressChunk = eachChunk;
             }
+
+            this.resources[name].progressChunk = eachChunk;
         }
 
         // add the resource to the queue
@@ -513,7 +512,8 @@ export default class Loader {
                     resource._onLoadBinding = resource.onComplete.once(this._onLoad, this);
                     resource.load();
                 }
-            }
+            },
+            true
         );
     }
 
@@ -538,10 +538,10 @@ export default class Loader {
         resource._onLoadBinding = null;
 
         // remove this resource from the async queue, and add it to our list of resources that are being parsed
-        resource._dequeue();
         this._resourcesParsing.push(resource);
+        resource._dequeue();
 
-        // run middleware, this *must* happen before dequeue so sub-assets get added properly
+        // run all the after middleware for this resource
         async.eachSeries(
             this._afterMiddleware,
             (fn, next) => {
@@ -567,7 +567,8 @@ export default class Loader {
                     this.progress = MAX_PROGRESS;
                     this._onComplete();
                 }
-            }
+            },
+            true
         );
     }
 }
